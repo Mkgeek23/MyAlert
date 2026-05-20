@@ -155,14 +155,16 @@ $typeLabel = $typeLabels[$alert['alert_type']] ?? $alert['alert_type'];
 
     <?php if ($displayStatus === 'active' || $displayStatus === 'overdue'): ?>
     <div class="card-footer">
+        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=edit" class="btn btn-primary">Edit</a>
         <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=close" class="btn btn-danger">Close Alert</a>
     </div>
     <?php endif; ?>
 
     <?php if ($alert['status'] === 'closed'): ?>
     <div class="card-footer">
+        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=edit" class="btn btn-primary">Edit</a>
         <?php if ($showReopenForm): ?>
-            <form method="POST" action="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=reopen">
+            <form method="POST" action="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=reopen" class="d-inline">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                 <div class="row g-2 align-items-end">
                     <div class="col-auto">

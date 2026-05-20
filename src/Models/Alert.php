@@ -145,6 +145,43 @@ class Alert
     }
 
     /**
+     * Update an alert's fields by ID.
+     *
+     * @param int   $id   The alert ID
+     * @param array $data Associative array of field => value pairs to update.
+     *                    Supported fields: title, description, webhook_id, alert_type,
+     *                    next_run_at, repeat_interval_minutes, default_next_days,
+     *                    status, series_ended
+     */
+    public function update(int $id, array $data): void
+    {
+        $allowedFields = [
+            'title', 'description', 'webhook_id', 'alert_type',
+            'next_run_at', 'repeat_interval_minutes', 'default_next_days',
+            'status', 'series_ended',
+        ];
+
+        $setClauses = [];
+        $params = [':id' => $id];
+
+        foreach ($data as $field => $value) {
+            if (!in_array($field, $allowedFields, true)) {
+                continue;
+            }
+            $setClauses[] = "`{$field}` = :{$field}";
+            $params[":{$field}"] = $value;
+        }
+
+        if (empty($setClauses)) {
+            return;
+        }
+
+        $sql = 'UPDATE alerts SET ' . implode(', ', $setClauses) . ' WHERE id = :id';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+    }
+
+    /**
      * Update the status of an alert.
      *
      * @param int $id The alert ID
