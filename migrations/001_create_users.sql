@@ -1,0 +1,11 @@
+CREATE TABLE IF NOT EXISTS `users` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `email` VARCHAR(254) NOT NULL,
+    `password_hash` VARCHAR(255) NOT NULL,
+    `failed_login_attempts` INT UNSIGNED NOT NULL DEFAULT 0,
+    `locked_until` DATETIME NULL,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_users_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -1,0 +1,27 @@
+{
+    "name": "myalert/discord-alert-system",
+    "description": "Discord Alert System - PHP web application for managing alerts delivered via Discord webhooks",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+        "php": ">=8.2",
+        "guzzlehttp/guzzle": "^7.9"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5",
+        "innmind/black-box": "^5.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "MyAlert\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MyAlert\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}

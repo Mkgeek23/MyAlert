@@ -1,0 +1,20 @@
+CREATE TABLE IF NOT EXISTS `alerts` (
+    `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id` INT UNSIGNED NOT NULL,
+    `webhook_id` INT UNSIGNED NOT NULL,
+    `title` VARCHAR(255) NOT NULL,
+    `description` TEXT NULL,
+    `alert_type` ENUM('one_time', 'repeat_until_closed', 'recurring_series') NOT NULL,
+    `status` ENUM('active', 'closed') NOT NULL DEFAULT 'active',
+    `next_run_at` DATETIME NOT NULL,
+    `repeat_interval_minutes` INT UNSIGNED NULL,
+    `default_next_days` INT UNSIGNED NULL,
+    `series_ended` BOOLEAN NOT NULL DEFAULT FALSE,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_alerts_user_status` (`user_id`, `status`),
+    INDEX `idx_alerts_due` (`status`, `next_run_at`),
+    CONSTRAINT `fk_alerts_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_alerts_webhook` FOREIGN KEY (`webhook_id`) REFERENCES `webhooks` (`id`) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

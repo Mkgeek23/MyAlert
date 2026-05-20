@@ -1,0 +1,13 @@
+RewriteEngine On
+RewriteBase /php/MyAlert/public/
+
+# Pass Authorization header to PHP (Apache strips it by default)
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+# If the request is not for an existing file or directory
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Rewrite /{page_name} to index.php?page={page_name}
+RewriteRule ^([a-z0-9\-]+)$ index.php?page=$1 [L,QSA]
