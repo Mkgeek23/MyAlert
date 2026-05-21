@@ -8,6 +8,7 @@ use MyAlert\Middleware\AuthMiddleware;
 use MyAlert\Middleware\CsrfMiddleware;
 use MyAlert\Models\Alert;
 use MyAlert\Models\Webhook;
+use MyAlert\Validation\IntervalConverter;
 use MyAlert\Validation\Validator;
 use PDO;
 
@@ -224,6 +225,7 @@ class AlertsEditHandler
         $alert_type = $data['alert_type'];
         $scheduled_at = $data['scheduled_at'];
         $repeat_interval_minutes = $data['repeat_interval_minutes'];
+        $repeat_interval_unit = $data['repeat_interval_unit'] ?? 'minutes';
         $default_next_days = $data['default_next_days'];
 
         // Capture page content
@@ -298,6 +300,16 @@ class AlertsEditHandler
 
         $webhooks = $webhookModel->findByUser($userId);
 
+        // Auto-detect best display unit for the stored interval value
+        $repeatIntervalMinutes = (string) ($alert['repeat_interval_minutes'] ?? '');
+        $repeatIntervalUnit = 'minutes';
+
+        if ($repeatIntervalMinutes !== '' && $repeatIntervalMinutes !== '0') {
+            $display = IntervalConverter::toDisplayUnit((int) $repeatIntervalMinutes);
+            $repeatIntervalMinutes = $display['value'];
+            $repeatIntervalUnit = $display['unit'];
+        }
+
         $this->renderEditForm([
             'alert' => $alert,
             'csrfToken' => $csrf->getToken(),
@@ -308,7 +320,8 @@ class AlertsEditHandler
             'webhook_id' => (string) $alert['webhook_id'],
             'alert_type' => $alert['alert_type'],
             'scheduled_at' => date('Y-m-d\TH:i', strtotime($alert['next_run_at'])),
-            'repeat_interval_minutes' => (string) ($alert['repeat_interval_minutes'] ?? ''),
+            'repeat_interval_minutes' => $repeatIntervalMinutes,
+            'repeat_interval_unit' => $repeatIntervalUnit,
             'default_next_days' => (string) ($alert['default_next_days'] ?? ''),
         ]);
     }
@@ -337,9 +350,11 @@ class AlertsEditHandler
         $alertType = $_POST['alert_type'] ?? '';
         $scheduledAt = trim($_POST['scheduled_at'] ?? '');
         $repeatIntervalMinutes = $_POST['repeat_interval_minutes'] ?? '';
+        $repeatIntervalUnit = $_POST['repeat_interval_unit'] ?? 'minutes';
         $defaultNextDays = $_POST['default_next_days'] ?? '';
 
         $errors = [];
+        $convertedMinutes = null;
 
         // Validate title (1-255 chars)
         $titleResult = $validator->validateAlertTitle($title);
@@ -379,10 +394,17 @@ class AlertsEditHandler
             if ($repeatIntervalMinutes === '') {
                 $errors[] = 'Repeat interval is required for repeat-until-closed alerts.';
             } else {
-                $intervalInt = (int) $repeatIntervalMinutes;
-                $intervalResult = $validator->validateRepeatInterval($intervalInt);
-                if (!$intervalResult['valid']) {
-                    $errors = array_merge($errors, $intervalResult['errors']);
+                // Convert using IntervalConverter (handles unit conversion + rounding)
+                $conversionResult = IntervalConverter::toMinutes($repeatIntervalMinutes, $repeatIntervalUnit);
+                if (!$conversionResult['valid']) {
+                    $errors = array_merge($errors, $conversionResult['errors']);
+                } else {
+                    $convertedMinutes = $conversionResult['minutes'];
+                    // Validate the converted integer is within range
+                    $intervalResult = $validator->validateRepeatInterval($convertedMinutes);
+                    if (!$intervalResult['valid']) {
+                        $errors = array_merge($errors, $intervalResult['errors']);
+                    }
                 }
             }
         }
@@ -413,6 +435,7 @@ class AlertsEditHandler
                 'alert_type' => $alertType,
                 'scheduled_at' => $scheduledAt,
                 'repeat_interval_minutes' => $repeatIntervalMinutes,
+                'repeat_interval_unit' => $repeatIntervalUnit,
                 'default_next_days' => $defaultNextDays,
             ]);
             return;
@@ -425,7 +448,7 @@ class AlertsEditHandler
             'webhook_id' => (int) $webhookId,
             'alert_type' => $alertType,
             'next_run_at' => date('Y-m-d H:i:s', strtotime($scheduledAt)),
-            'repeat_interval_minutes' => $alertType === 'repeat_until_closed' ? (int) $repeatIntervalMinutes : null,
+            'repeat_interval_minutes' => $alertType === 'repeat_until_closed' ? $convertedMinutes : null,
             'default_next_days' => $alertType === 'recurring_series' ? (int) $defaultNextDays : null,
         ];
 

@@ -8,6 +8,7 @@ use MyAlert\Middleware\AuthMiddleware;
 use MyAlert\Middleware\CsrfMiddleware;
 use MyAlert\Models\Alert;
 use MyAlert\Models\Webhook;
+use MyAlert\Validation\IntervalConverter;
 use MyAlert\Validation\Validator;
 use PDO;
 
@@ -63,6 +64,7 @@ class AlertsCreateHandler
             'alert_type' => 'one_time',
             'scheduled_at' => '',
             'repeat_interval_minutes' => '',
+            'repeat_interval_unit' => 'minutes',
             'default_next_days' => '',
         ], $overrides));
     }
@@ -88,6 +90,7 @@ class AlertsCreateHandler
         $alertType = $_POST['alert_type'] ?? '';
         $scheduledAt = trim($_POST['scheduled_at'] ?? '');
         $repeatIntervalMinutes = $_POST['repeat_interval_minutes'] ?? '';
+        $repeatIntervalUnit = $_POST['repeat_interval_unit'] ?? 'minutes';
         $defaultNextDays = $_POST['default_next_days'] ?? '';
 
         $errors = [];
@@ -126,14 +129,20 @@ class AlertsCreateHandler
         }
 
         // Type-specific validation
+        $convertedMinutes = null;
         if ($alertType === 'repeat_until_closed') {
             if ($repeatIntervalMinutes === '') {
                 $errors[] = 'Repeat interval is required for repeat-until-closed alerts.';
             } else {
-                $intervalInt = (int) $repeatIntervalMinutes;
-                $intervalResult = $validator->validateRepeatInterval($intervalInt);
-                if (!$intervalResult['valid']) {
-                    $errors = array_merge($errors, $intervalResult['errors']);
+                $converted = IntervalConverter::toMinutes($repeatIntervalMinutes, $repeatIntervalUnit);
+                if (!$converted['valid']) {
+                    $errors = array_merge($errors, $converted['errors']);
+                } else {
+                    $convertedMinutes = $converted['minutes'];
+                    $intervalResult = $validator->validateRepeatInterval($convertedMinutes);
+                    if (!$intervalResult['valid']) {
+                        $errors = array_merge($errors, $intervalResult['errors']);
+                    }
                 }
             }
         }
@@ -162,6 +171,7 @@ class AlertsCreateHandler
                 'alert_type' => $alertType,
                 'scheduled_at' => $scheduledAt,
                 'repeat_interval_minutes' => $repeatIntervalMinutes,
+                'repeat_interval_unit' => $repeatIntervalUnit,
                 'default_next_days' => $defaultNextDays,
             ]);
             return;
@@ -175,7 +185,7 @@ class AlertsCreateHandler
             'description' => $description !== '' ? $description : null,
             'alert_type' => $alertType,
             'next_run_at' => date('Y-m-d H:i:s', strtotime($scheduledAt)),
-            'repeat_interval_minutes' => $alertType === 'repeat_until_closed' ? (int) $repeatIntervalMinutes : null,
+            'repeat_interval_minutes' => $alertType === 'repeat_until_closed' ? $convertedMinutes : null,
             'default_next_days' => $alertType === 'recurring_series' ? (int) $defaultNextDays : null,
         ];
 
@@ -205,6 +215,7 @@ class AlertsCreateHandler
         $alert_type = $data['alert_type'];
         $scheduled_at = $data['scheduled_at'];
         $repeat_interval_minutes = $data['repeat_interval_minutes'];
+        $repeat_interval_unit = $data['repeat_interval_unit'] ?? 'minutes';
         $default_next_days = $data['default_next_days'];
 
         // Capture page content

@@ -16,6 +16,7 @@
  *   $alert_type             - string, current/submitted alert type
  *   $scheduled_at           - string, current/submitted datetime
  *   $repeat_interval_minutes - string, current/submitted repeat interval
+ *   $repeat_interval_unit    - string, selected unit ("minutes" or "hours")
  *   $default_next_days      - string, current/submitted default next days
  *   $config                 - array, application configuration
  */
@@ -94,9 +95,17 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
             </div>
 
             <div class="mb-3" id="repeat_interval_group">
-                <label for="repeat_interval_minutes" class="form-label">Repeat Interval (minutes) <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="repeat_interval_minutes" name="repeat_interval_minutes" value="<?= htmlspecialchars((string) $repeat_interval_minutes, ENT_QUOTES, 'UTF-8') ?>" min="5" max="525600" placeholder="e.g. 60 for hourly">
-                <div class="form-text">How often to repeat (5 - 525,600 minutes). Only for Repeat Until Closed alerts.</div>
+                <label for="repeat_interval_minutes" class="form-label">Repeat Interval <span class="text-danger">*</span></label>
+                <div class="input-group">
+                    <input type="number" class="form-control" id="repeat_interval_minutes" name="repeat_interval_minutes"
+                           value="<?= htmlspecialchars((string) $repeat_interval_minutes, ENT_QUOTES, 'UTF-8') ?>"
+                           min="5" max="525600" step="1" placeholder="e.g. 60">
+                    <select class="form-select" id="repeat_interval_unit" name="repeat_interval_unit" style="max-width: 120px;">
+                        <option value="minutes"<?= ($repeat_interval_unit ?? 'minutes') === 'minutes' ? ' selected' : '' ?>>minutes</option>
+                        <option value="hours"<?= ($repeat_interval_unit ?? 'minutes') === 'hours' ? ' selected' : '' ?>>hours</option>
+                    </select>
+                </div>
+                <div class="form-text">How often to repeat (5 min – 8,760 hrs). Only for Repeat Until Closed alerts.</div>
             </div>
 
             <div class="mb-3" id="default_next_days_group">
@@ -125,5 +134,28 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
 
         alertTypeSelect.addEventListener('change', toggleFields);
         toggleFields(); // Run on page load
+    })();
+
+    // Toggle interval input constraints based on unit selection
+    (function() {
+        var unitSelect = document.getElementById('repeat_interval_unit');
+        var intervalInput = document.getElementById('repeat_interval_minutes');
+
+        function updateConstraints() {
+            if (unitSelect.value === 'hours') {
+                intervalInput.setAttribute('min', '0.084');
+                intervalInput.setAttribute('max', '8760');
+                intervalInput.setAttribute('step', 'any');
+                intervalInput.setAttribute('placeholder', 'e.g. 1 for hourly');
+            } else {
+                intervalInput.setAttribute('min', '5');
+                intervalInput.setAttribute('max', '525600');
+                intervalInput.setAttribute('step', '1');
+                intervalInput.setAttribute('placeholder', 'e.g. 60 for hourly');
+            }
+        }
+
+        unitSelect.addEventListener('change', updateConstraints);
+        updateConstraints(); // Apply on page load
     })();
 </script>
