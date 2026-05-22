@@ -20,11 +20,11 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
     <div class="col-md-6">
         <div class="card shadow-sm">
             <div class="card-body p-4">
-                <h2 class="card-title text-center mb-3">Set Next Date</h2>
+                <h2 class="card-title text-center mb-3">Ustaw następną datę</h2>
                 <p class="text-center text-muted mb-4">
-                    Schedule the next occurrence for
+                    Zaplanuj następne wystąpienie alertu
                     <strong><?= htmlspecialchars($alertTitle, ENT_QUOTES, 'UTF-8') ?></strong>
-                    or end the series.
+                    lub zakończ serię.
                 </p>
 
                 <?php if ($formError !== ''): ?>
@@ -38,7 +38,7 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
                     <input type="hidden" name="token" value="<?= htmlspecialchars($formToken, ENT_QUOTES, 'UTF-8') ?>">
 
                     <div class="mb-3">
-                        <label for="next_date" class="form-label">Next alert date</label>
+                        <label for="next_date" class="form-label">Następna data alertu</label>
                         <input
                             type="date"
                             class="form-control"
@@ -50,8 +50,8 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button type="submit" name="action" value="set_next_date" class="btn btn-primary">Set Next Date</button>
-                        <button type="submit" name="action" value="end_series" class="btn btn-outline-danger">End Series</button>
+                        <button type="submit" name="action" value="set_next_date" class="btn btn-primary">Ustaw następną datę</button>
+                        <button type="submit" name="action" value="end_series" class="btn btn-outline-danger">Zakończ serię</button>
                     </div>
                 </form>
             </div>

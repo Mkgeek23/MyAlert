@@ -19,9 +19,9 @@
                         <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5"/>
                     </svg>
                 </div>
-                <h2 class="card-title mb-3">Token Expired</h2>
+                <h2 class="card-title mb-3">Token wygasł</h2>
                 <p class="text-muted mb-0">
-                    This close link has expired. Please open the application to manage your alert.
+                    Ten link zamknięcia wygasł. Otwórz aplikację, aby zarządzać alertem.
                 </p>
             </div>
         </div>

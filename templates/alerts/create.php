@@ -27,10 +27,10 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
 ?>
 
 <div class="mb-4">
-    <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts" class="text-decoration-none">&larr; Back to Alerts</a>
+    <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts" class="text-decoration-none">&larr; Powrót do alertów</a>
 </div>
 
-<h1 class="mb-4">Create Alert</h1>
+<h1 class="mb-4">Utwórz alert</h1>
 
 <?php if (!empty($errors)): ?>
 <div class="alert alert-danger" role="alert">
@@ -48,68 +48,68 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
 
             <div class="mb-3">
-                <label for="title" class="form-label">Title <span class="text-danger">*</span></label>
-                <input type="text" class="form-control" id="title" name="title" value="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>" maxlength="255" required placeholder="e.g. Daily standup reminder">
-                <div class="form-text">A short title for your alert (1-255 characters).</div>
+                <label for="title" class="form-label">Tytuł <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="title" name="title" value="<?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?>" maxlength="255" required placeholder="np. Przypomnienie o spotkaniu">
+                <div class="form-text">Krótki tytuł alertu (1-255 znaków).</div>
             </div>
 
             <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
-                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Optional description for your alert"><?= htmlspecialchars($description, ENT_QUOTES, 'UTF-8') ?></textarea>
-                <div class="form-text">Optional. Will be included in the Discord message.</div>
+                <label for="description" class="form-label">Opis</label>
+                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Opcjonalny opis alertu"><?= htmlspecialchars($description, ENT_QUOTES, 'UTF-8') ?></textarea>
+                <div class="form-text">Opcjonalnie. Zostanie dołączony do wiadomości na Discordzie.</div>
             </div>
 
             <div class="mb-3">
                 <label for="webhook_id" class="form-label">Webhook <span class="text-danger">*</span></label>
                 <select class="form-select" id="webhook_id" name="webhook_id" required>
-                    <option value="">-- Select a webhook --</option>
+                    <option value="">-- Wybierz webhook --</option>
                     <?php foreach ($webhooks as $webhook): ?>
                     <option value="<?= htmlspecialchars((string) $webhook['id'], ENT_QUOTES, 'UTF-8') ?>"<?= (string) $webhook['id'] === (string) $webhook_id ? ' selected' : '' ?>><?= htmlspecialchars($webhook['name'], ENT_QUOTES, 'UTF-8') ?></option>
                     <?php endforeach; ?>
                 </select>
-                <div class="form-text">The Discord webhook to send the alert to.</div>
+                <div class="form-text">Webhook Discord, na który zostanie wysłany alert.</div>
             </div>
 
             <div class="mb-3">
-                <label for="alert_type" class="form-label">Alert Type <span class="text-danger">*</span></label>
+                <label for="alert_type" class="form-label">Typ alertu <span class="text-danger">*</span></label>
                 <select class="form-select" id="alert_type" name="alert_type" required>
-                    <option value="one_time"<?= $alert_type === 'one_time' ? ' selected' : '' ?>>One-Time</option>
-                    <option value="repeat_until_closed"<?= $alert_type === 'repeat_until_closed' ? ' selected' : '' ?>>Repeat Until Closed</option>
-                    <option value="recurring_series"<?= $alert_type === 'recurring_series' ? ' selected' : '' ?>>Recurring Series</option>
-                    <option value="recurring_renewal"<?= $alert_type === 'recurring_renewal' ? ' selected' : '' ?>>Recurring Renewal</option>
+                    <option value="one_time"<?= $alert_type === 'one_time' ? ' selected' : '' ?>>Jednorazowy</option>
+                    <option value="repeat_until_closed"<?= $alert_type === 'repeat_until_closed' ? ' selected' : '' ?>>Powtarzalny do zamknięcia</option>
+                    <option value="recurring_series"<?= $alert_type === 'recurring_series' ? ' selected' : '' ?>>Seria cykliczna</option>
+                    <option value="recurring_renewal"<?= $alert_type === 'recurring_renewal' ? ' selected' : '' ?>>Cykliczny z odnowieniem</option>
                 </select>
                 <div class="form-text">
-                    <strong>One-Time:</strong> Fires once at the scheduled time.<br>
-                    <strong>Repeat Until Closed:</strong> Repeats at a fixed interval until you close it.<br>
-                    <strong>Recurring Series:</strong> After closing, you can schedule the next occurrence.<br>
-                    <strong>Recurring Renewal:</strong> After closing, calculates the next date automatically based on renewal mode.
+                    <strong>Jednorazowy:</strong> Wysyła raz o zaplanowanej godzinie.<br>
+                    <strong>Powtarzalny do zamknięcia:</strong> Powtarza w stałym interwale aż go zamkniesz.<br>
+                    <strong>Seria cykliczna:</strong> Po zamknięciu możesz zaplanować następne wystąpienie.<br>
+                    <strong>Cykliczny z odnowieniem:</strong> Po zamknięciu automatycznie oblicza następną datę na podstawie trybu odnowienia.
                 </div>
             </div>
 
             <div class="mb-3">
-                <label for="scheduled_at" class="form-label">Scheduled Date/Time <span class="text-danger">*</span></label>
+                <label for="scheduled_at" class="form-label">Zaplanowana data/godzina <span class="text-danger">*</span></label>
                 <input type="datetime-local" class="form-control" id="scheduled_at" name="scheduled_at" value="<?= htmlspecialchars($scheduled_at, ENT_QUOTES, 'UTF-8') ?>" required>
-                <div class="form-text">Must be at least 1 minute in the future.</div>
+                <div class="form-text">Musi być co najmniej 1 minutę w przyszłości.</div>
             </div>
 
             <div class="mb-3" id="repeat_interval_group">
-                <label for="repeat_interval_minutes" class="form-label">Repeat Interval <span class="text-danger">*</span></label>
+                <label for="repeat_interval_minutes" class="form-label">Interwał powtarzania <span class="text-danger">*</span></label>
                 <div class="input-group">
                     <input type="number" class="form-control" id="repeat_interval_minutes" name="repeat_interval_minutes"
                            value="<?= htmlspecialchars((string) $repeat_interval_minutes, ENT_QUOTES, 'UTF-8') ?>"
-                           min="5" max="525600" step="1" placeholder="e.g. 60">
+                           min="5" max="525600" step="1" placeholder="np. 60">
                     <select class="form-select" id="repeat_interval_unit" name="repeat_interval_unit" style="max-width: 120px;">
-                        <option value="minutes"<?= ($repeat_interval_unit ?? 'minutes') === 'minutes' ? ' selected' : '' ?>>minutes</option>
-                        <option value="hours"<?= ($repeat_interval_unit ?? 'minutes') === 'hours' ? ' selected' : '' ?>>hours</option>
+                        <option value="minutes"<?= ($repeat_interval_unit ?? 'minutes') === 'minutes' ? ' selected' : '' ?>>minuty</option>
+                        <option value="hours"<?= ($repeat_interval_unit ?? 'minutes') === 'hours' ? ' selected' : '' ?>>godziny</option>
                     </select>
                 </div>
-                <div class="form-text">How often to repeat (5 min – 8,760 hrs). For Repeat Until Closed and Recurring Renewal alerts.</div>
+                <div class="form-text">Jak często powtarzać (5 min – 8 760 godz.). Dla alertów powtarzalnych i cyklicznych z odnowieniem.</div>
             </div>
 
             <div class="mb-3" id="default_next_days_group">
-                <label for="default_next_days" class="form-label">Default Next Days <span class="text-danger">*</span></label>
-                <input type="number" class="form-control" id="default_next_days" name="default_next_days" value="<?= htmlspecialchars((string) $default_next_days, ENT_QUOTES, 'UTF-8') ?>" min="1" max="365" placeholder="e.g. 7 for weekly">
-                <div class="form-text">Pre-fills the next date when closing an occurrence (1-365 days). Only for Recurring Series alerts.</div>
+                <label for="default_next_days" class="form-label">Domyślna liczba dni <span class="text-danger">*</span></label>
+                <input type="number" class="form-control" id="default_next_days" name="default_next_days" value="<?= htmlspecialchars((string) $default_next_days, ENT_QUOTES, 'UTF-8') ?>" min="1" max="365" placeholder="np. 7 dla tygodniowego">
+                <div class="form-text">Wstępnie wypełnia następną datę przy zamykaniu (1-365 dni). Tylko dla serii cyklicznej.</div>
             </div>
 
             <div id="renewal_fields_group">
@@ -145,7 +145,7 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Create Alert</button>
+            <button type="submit" class="btn btn-primary">Utwórz alert</button>
         </form>
     </div>
 </div>
@@ -221,12 +221,12 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
                 intervalInput.setAttribute('min', '0.084');
                 intervalInput.setAttribute('max', '8760');
                 intervalInput.setAttribute('step', 'any');
-                intervalInput.setAttribute('placeholder', 'e.g. 1 for hourly');
+                intervalInput.setAttribute('placeholder', 'np. 1 dla co godzinę');
             } else {
                 intervalInput.setAttribute('min', '5');
                 intervalInput.setAttribute('max', '525600');
                 intervalInput.setAttribute('step', '1');
-                intervalInput.setAttribute('placeholder', 'e.g. 60');
+                intervalInput.setAttribute('placeholder', 'np. 60');
             }
         }
 

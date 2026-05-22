@@ -15,7 +15,7 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
     <div class="col-md-5">
         <div class="card shadow-sm">
             <div class="card-body p-4">
-                <h2 class="card-title text-center mb-4">Login</h2>
+                <h2 class="card-title text-center mb-4">Logowanie</h2>
 
                 <?php if ($error !== ''): ?>
                     <div class="alert alert-danger" role="alert">
@@ -27,7 +27,7 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
 
                     <div class="mb-3">
-                        <label for="email" class="form-label">Email address</label>
+                        <label for="email" class="form-label">Adres e-mail</label>
                         <input
                             type="email"
                             class="form-control"
@@ -40,7 +40,7 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
                     </div>
 
                     <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
+                        <label for="password" class="form-label">Hasło</label>
                         <input
                             type="password"
                             class="form-control"
@@ -52,13 +52,13 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
                     </div>
 
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Login</button>
+                        <button type="submit" class="btn btn-primary">Zaloguj się</button>
                     </div>
                 </form>
 
                 <p class="text-center mt-3 mb-0">
-                    Don't have an account?
-                    <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/register">Register</a>
+                    Nie masz konta?
+                    <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/register">Zarejestruj się</a>
                 </p>
             </div>
         </div>

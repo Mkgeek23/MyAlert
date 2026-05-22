@@ -20,8 +20,8 @@ $currentType = $filters['type'] ?? '';
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Alerts</h1>
-    <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-create" class="btn btn-primary d-none d-md-inline-block">New Alert</a>
+    <h1>Alerty</h1>
+    <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-create" class="btn btn-primary d-none d-md-inline-block">Nowy alert</a>
 </div>
 
 <!-- Filter Controls -->
@@ -32,23 +32,23 @@ $currentType = $filters['type'] ?? '';
                 <div class="col-sm-6 col-md-4">
                     <label for="filter-status" class="form-label">Status</label>
                     <select name="status" id="filter-status" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Statuses</option>
-                        <option value="active"<?= $currentStatus === 'active' ? ' selected' : '' ?>>Active</option>
-                        <option value="closed"<?= $currentStatus === 'closed' ? ' selected' : '' ?>>Closed</option>
-                        <option value="overdue"<?= $currentStatus === 'overdue' ? ' selected' : '' ?>>Overdue</option>
+                        <option value="">Wszystkie statusy</option>
+                        <option value="active"<?= $currentStatus === 'active' ? ' selected' : '' ?>>Aktywne</option>
+                        <option value="closed"<?= $currentStatus === 'closed' ? ' selected' : '' ?>>Zamknięte</option>
+                        <option value="overdue"<?= $currentStatus === 'overdue' ? ' selected' : '' ?>>Zaległe</option>
                     </select>
                 </div>
                 <div class="col-sm-6 col-md-4">
-                    <label for="filter-type" class="form-label">Type</label>
+                    <label for="filter-type" class="form-label">Typ</label>
                     <select name="type" id="filter-type" class="form-select" onchange="this.form.submit()">
-                        <option value="">All Types</option>
-                        <option value="one_time"<?= $currentType === 'one_time' ? ' selected' : '' ?>>One-Time</option>
-                        <option value="repeat_until_closed"<?= $currentType === 'repeat_until_closed' ? ' selected' : '' ?>>Repeat</option>
-                        <option value="recurring_series"<?= $currentType === 'recurring_series' ? ' selected' : '' ?>>Series</option>
+                        <option value="">Wszystkie typy</option>
+                        <option value="one_time"<?= $currentType === 'one_time' ? ' selected' : '' ?>>Jednorazowy</option>
+                        <option value="repeat_until_closed"<?= $currentType === 'repeat_until_closed' ? ' selected' : '' ?>>Powtarzalny</option>
+                        <option value="recurring_series"<?= $currentType === 'recurring_series' ? ' selected' : '' ?>>Seria</option>
                     </select>
                 </div>
                 <div class="col-sm-12 col-md-4">
-                    <noscript><button type="submit" class="btn btn-secondary w-100">Apply Filters</button></noscript>
+                    <noscript><button type="submit" class="btn btn-secondary w-100">Zastosuj filtry</button></noscript>
                 </div>
             </div>
         </form>
@@ -59,11 +59,11 @@ $currentType = $filters['type'] ?? '';
 <!-- No Alerts Found -->
 <div class="card">
     <div class="card-body text-center py-5">
-        <p class="text-muted mb-3">No alerts found for the current filter selection.</p>
+        <p class="text-muted mb-3">Nie znaleziono alertów dla wybranych filtrów.</p>
         <?php if (!empty($filters)): ?>
-        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts" class="btn btn-outline-secondary me-2">Clear Filters</a>
+        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts" class="btn btn-outline-secondary me-2">Wyczyść filtry</a>
         <?php endif; ?>
-        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-create" class="btn btn-outline-primary">Create New Alert</a>
+        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-create" class="btn btn-outline-primary">Utwórz nowy alert</a>
     </div>
 </div>
 <?php else: ?>
@@ -73,11 +73,11 @@ $currentType = $filters['type'] ?? '';
         <table class="table table-hover mb-0">
             <thead class="table-light">
                 <tr>
-                    <th>Type</th>
+                    <th>Typ</th>
                     <th>Status</th>
-                    <th>Title</th>
-                    <th>Next Run</th>
-                    <th class="text-end">Actions</th>
+                    <th>Tytuł</th>
+                    <th>Następne uruchomienie</th>
+                    <th class="text-end">Akcje</th>
                 </tr>
             </thead>
             <tbody>
@@ -90,37 +90,37 @@ $currentType = $filters['type'] ?? '';
                 <tr>
                     <td>
                         <?php if ($alert['alert_type'] === 'one_time'): ?>
-                            <span class="badge bg-info">One-Time</span>
+                            <span class="badge bg-info">Jednorazowy</span>
                         <?php elseif ($alert['alert_type'] === 'repeat_until_closed'): ?>
-                            <span class="badge bg-warning text-dark">Repeat</span>
+                            <span class="badge bg-warning text-dark">Powtarzalny</span>
                         <?php elseif ($alert['alert_type'] === 'recurring_series'): ?>
-                            <span class="badge bg-purple text-white" style="background-color: #6f42c1;">Series</span>
+                            <span class="badge bg-purple text-white" style="background-color: #6f42c1;">Seria</span>
                         <?php endif; ?>
                     </td>
                     <td>
                         <?php if ($displayStatus === 'active'): ?>
-                            <span class="badge bg-success">Active</span>
+                            <span class="badge bg-success">Aktywny</span>
                         <?php elseif ($displayStatus === 'closed'): ?>
-                            <span class="badge bg-secondary">Closed</span>
+                            <span class="badge bg-secondary">Zamknięty</span>
                         <?php elseif ($displayStatus === 'overdue'): ?>
-                            <span class="badge bg-danger">Overdue</span>
+                            <span class="badge bg-danger">Zaległy</span>
                         <?php endif; ?>
                     </td>
                     <td><?= htmlspecialchars($alert['title'], ENT_QUOTES, 'UTF-8') ?></td>
                     <td>
                         <?php if (!empty($alert['next_run_at'])): ?>
-                            <?= htmlspecialchars(date('M j, Y g:i A', strtotime($alert['next_run_at'])), ENT_QUOTES, 'UTF-8') ?>
+                            <?= htmlspecialchars(date('d.m.Y H:i', strtotime($alert['next_run_at'])), ENT_QUOTES, 'UTF-8') ?>
                         <?php else: ?>
                             <span class="text-muted">—</span>
                         <?php endif; ?>
                     </td>
                     <td class="text-end">
-                        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm btn-outline-primary">View</a>
+                        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>" class="btn btn-sm btn-outline-primary">Zobacz</a>
                         <?php if ($displayStatus === 'active' || $displayStatus === 'overdue'): ?>
-                            <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=close" class="btn btn-sm btn-outline-danger">Close</a>
+                            <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=close" class="btn btn-sm btn-outline-danger">Zamknij</a>
                         <?php endif; ?>
                         <?php if ($displayStatus === 'closed'): ?>
-                            <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=reopen" class="btn btn-sm btn-outline-success">Reopen</a>
+                            <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=reopen" class="btn btn-sm btn-outline-success">Wznów</a>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -209,11 +209,11 @@ $currentType = $filters['type'] ?? '';
         </li>
     </ul>
 </nav>
-<p class="text-center text-muted small">Showing page <?= (int) $currentPage ?> of <?= (int) $totalPages ?> (<?= (int) $totalCount ?> alerts total)</p>
+<p class="text-center text-muted small">Strona <?= (int) $currentPage ?> z <?= (int) $totalPages ?> (<?= (int) $totalCount ?> alertów łącznie)</p>
 <?php endif; ?>
 <?php endif; ?>
 
 <!-- Floating Action Button for Mobile -->
-<a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-create" class="fab d-md-none" aria-label="Create new alert">
+<a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-create" class="fab d-md-none" aria-label="Utwórz nowy alert">
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
 </a>

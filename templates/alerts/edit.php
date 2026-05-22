@@ -21,16 +21,16 @@ $displayStatus = $isOverdue ? 'overdue' : $alert['status'];
 
 // Map alert types to display labels
 $typeLabels = [
-    'one_time' => 'One-Time',
-    'repeat_until_closed' => 'Repeat',
-    'recurring_series' => 'Series',
+    'one_time' => 'Jednorazowy',
+    'repeat_until_closed' => 'Powtarzalny',
+    'recurring_series' => 'Seria',
 ];
 $typeLabel = $typeLabels[$alert['alert_type']] ?? $alert['alert_type'];
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>Alert Details</h1>
-    <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts" class="btn btn-outline-secondary">&larr; Back to Alerts</a>
+    <h1>Szczegóły alertu</h1>
+    <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts" class="btn btn-outline-secondary">&larr; Powrót do alertów</a>
 </div>
 
 <?php if ($closeMessage !== ''): ?>
@@ -46,88 +46,88 @@ $typeLabel = $typeLabels[$alert['alert_type']] ?? $alert['alert_type'];
         <div>
             <!-- Type Badge -->
             <?php if ($alert['alert_type'] === 'one_time'): ?>
-                <span class="badge bg-info">One-Time</span>
+                <span class="badge bg-info">Jednorazowy</span>
             <?php elseif ($alert['alert_type'] === 'repeat_until_closed'): ?>
-                <span class="badge bg-warning text-dark">Repeat</span>
+                <span class="badge bg-warning text-dark">Powtarzalny</span>
             <?php elseif ($alert['alert_type'] === 'recurring_series'): ?>
-                <span class="badge" style="background-color: #6f42c1; color: #fff;">Series</span>
+                <span class="badge" style="background-color: #6f42c1; color: #fff;">Seria</span>
             <?php endif; ?>
 
             <!-- Status Badge -->
             <?php if ($displayStatus === 'active'): ?>
-                <span class="badge bg-success">Active</span>
+                <span class="badge bg-success">Aktywny</span>
             <?php elseif ($displayStatus === 'closed'): ?>
-                <span class="badge bg-secondary">Closed</span>
+                <span class="badge bg-secondary">Zamknięty</span>
             <?php elseif ($displayStatus === 'overdue'): ?>
-                <span class="badge bg-danger">Overdue</span>
+                <span class="badge bg-danger">Zaległy</span>
             <?php endif; ?>
         </div>
     </div>
     <div class="card-body">
         <dl class="row mb-0">
-            <dt class="col-sm-4">Title</dt>
+            <dt class="col-sm-4">Tytuł</dt>
             <dd class="col-sm-8"><?= htmlspecialchars($alert['title'], ENT_QUOTES, 'UTF-8') ?></dd>
 
-            <dt class="col-sm-4">Description</dt>
+            <dt class="col-sm-4">Opis</dt>
             <dd class="col-sm-8">
                 <?php if (!empty($alert['description'])): ?>
                     <?= nl2br(htmlspecialchars($alert['description'], ENT_QUOTES, 'UTF-8')) ?>
                 <?php else: ?>
-                    <span class="text-muted">No description</span>
+                    <span class="text-muted">Brak opisu</span>
                 <?php endif; ?>
             </dd>
 
-            <dt class="col-sm-4">Type</dt>
+            <dt class="col-sm-4">Typ</dt>
             <dd class="col-sm-8"><?= htmlspecialchars($typeLabel, ENT_QUOTES, 'UTF-8') ?></dd>
 
             <dt class="col-sm-4">Status</dt>
             <dd class="col-sm-8">
                 <?php if ($displayStatus === 'active'): ?>
-                    <span class="badge bg-success">Active</span>
+                    <span class="badge bg-success">Aktywny</span>
                 <?php elseif ($displayStatus === 'closed'): ?>
-                    <span class="badge bg-secondary">Closed</span>
+                    <span class="badge bg-secondary">Zamknięty</span>
                 <?php elseif ($displayStatus === 'overdue'): ?>
-                    <span class="badge bg-danger">Overdue</span>
+                    <span class="badge bg-danger">Zaległy</span>
                 <?php endif; ?>
             </dd>
 
-            <dt class="col-sm-4">Next Run</dt>
+            <dt class="col-sm-4">Następne uruchomienie</dt>
             <dd class="col-sm-8">
                 <?php if (!empty($alert['next_run_at'])): ?>
-                    <?= htmlspecialchars(date('M j, Y g:i A', strtotime($alert['next_run_at'])), ENT_QUOTES, 'UTF-8') ?>
+                    <?= htmlspecialchars(date('d.m.Y H:i', strtotime($alert['next_run_at'])), ENT_QUOTES, 'UTF-8') ?>
                 <?php else: ?>
                     <span class="text-muted">—</span>
                 <?php endif; ?>
             </dd>
 
             <?php if ($alert['alert_type'] === 'repeat_until_closed' && !empty($alert['repeat_interval_minutes'])): ?>
-            <dt class="col-sm-4">Repeat Interval</dt>
+            <dt class="col-sm-4">Interwał powtarzania</dt>
             <dd class="col-sm-8">
                 <?php
                     $minutes = (int) $alert['repeat_interval_minutes'];
                     if ($minutes >= 1440) {
                         $days = floor($minutes / 1440);
                         $remainingMinutes = $minutes % 1440;
-                        $intervalDisplay = $days . ' day' . ($days > 1 ? 's' : '');
+                        $intervalDisplay = $days . ' ' . ($days === 1 ? 'dzień' : 'dni');
                         if ($remainingMinutes > 0) {
                             $hours = floor($remainingMinutes / 60);
                             $mins = $remainingMinutes % 60;
                             if ($hours > 0) {
-                                $intervalDisplay .= ', ' . $hours . ' hour' . ($hours > 1 ? 's' : '');
+                                $intervalDisplay .= ', ' . $hours . ' ' . ($hours === 1 ? 'godzina' : 'godzin');
                             }
                             if ($mins > 0) {
-                                $intervalDisplay .= ', ' . $mins . ' minute' . ($mins > 1 ? 's' : '');
+                                $intervalDisplay .= ', ' . $mins . ' ' . ($mins === 1 ? 'minuta' : 'minut');
                             }
                         }
                     } elseif ($minutes >= 60) {
                         $hours = floor($minutes / 60);
                         $mins = $minutes % 60;
-                        $intervalDisplay = $hours . ' hour' . ($hours > 1 ? 's' : '');
+                        $intervalDisplay = $hours . ' ' . ($hours === 1 ? 'godzina' : 'godzin');
                         if ($mins > 0) {
-                            $intervalDisplay .= ', ' . $mins . ' minute' . ($mins > 1 ? 's' : '');
+                            $intervalDisplay .= ', ' . $mins . ' ' . ($mins === 1 ? 'minuta' : 'minut');
                         }
                     } else {
-                        $intervalDisplay = $minutes . ' minute' . ($minutes > 1 ? 's' : '');
+                        $intervalDisplay = $minutes . ' ' . ($minutes === 1 ? 'minuta' : 'minut');
                     }
                 ?>
                 <?= htmlspecialchars($intervalDisplay, ENT_QUOTES, 'UTF-8') ?>
@@ -135,17 +135,17 @@ $typeLabel = $typeLabels[$alert['alert_type']] ?? $alert['alert_type'];
             <?php endif; ?>
 
             <?php if ($alert['alert_type'] === 'recurring_series' && !empty($alert['default_next_days'])): ?>
-            <dt class="col-sm-4">Default Next Days</dt>
-            <dd class="col-sm-8"><?= htmlspecialchars((string) $alert['default_next_days'], ENT_QUOTES, 'UTF-8') ?> days</dd>
+            <dt class="col-sm-4">Domyślna liczba dni</dt>
+            <dd class="col-sm-8"><?= htmlspecialchars((string) $alert['default_next_days'], ENT_QUOTES, 'UTF-8') ?> dni</dd>
             <?php endif; ?>
 
             <dt class="col-sm-4">Webhook</dt>
             <dd class="col-sm-8"><?= htmlspecialchars($webhookName, ENT_QUOTES, 'UTF-8') ?></dd>
 
-            <dt class="col-sm-4">Created</dt>
+            <dt class="col-sm-4">Utworzono</dt>
             <dd class="col-sm-8">
                 <?php if (!empty($alert['created_at'])): ?>
-                    <?= htmlspecialchars(date('M j, Y g:i A', strtotime($alert['created_at'])), ENT_QUOTES, 'UTF-8') ?>
+                    <?= htmlspecialchars(date('d.m.Y H:i', strtotime($alert['created_at'])), ENT_QUOTES, 'UTF-8') ?>
                 <?php else: ?>
                     <span class="text-muted">—</span>
                 <?php endif; ?>
@@ -155,24 +155,24 @@ $typeLabel = $typeLabels[$alert['alert_type']] ?? $alert['alert_type'];
 
     <?php if ($displayStatus === 'active' || $displayStatus === 'overdue'): ?>
     <div class="card-footer">
-        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=edit" class="btn btn-primary">Edit</a>
-        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=close" class="btn btn-danger">Close Alert</a>
+        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=edit" class="btn btn-primary">Edytuj</a>
+        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=close" class="btn btn-danger">Zamknij alert</a>
     </div>
     <?php endif; ?>
 
     <?php if ($alert['status'] === 'closed'): ?>
     <div class="card-footer">
-        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=edit" class="btn btn-primary">Edit</a>
+        <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=edit" class="btn btn-primary">Edytuj</a>
         <?php if ($showReopenForm): ?>
             <form method="POST" action="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=reopen" class="d-inline">
                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrfToken, ENT_QUOTES, 'UTF-8') ?>">
                 <div class="row g-2 align-items-end">
                     <div class="col-auto">
-                        <label for="next_run_at" class="form-label">New Schedule Date/Time</label>
+                        <label for="next_run_at" class="form-label">Nowa data/godzina</label>
                         <input type="datetime-local" class="form-control" id="next_run_at" name="next_run_at" value="<?= htmlspecialchars($preservedDate, ENT_QUOTES, 'UTF-8') ?>" required>
                     </div>
                     <div class="col-auto">
-                        <button type="submit" class="btn btn-success">Confirm Reopen</button>
+                        <button type="submit" class="btn btn-success">Potwierdź wznowienie</button>
                     </div>
                 </div>
                 <?php if ($reopenError): ?>
@@ -180,7 +180,7 @@ $typeLabel = $typeLabels[$alert['alert_type']] ?? $alert['alert_type'];
                 <?php endif; ?>
             </form>
         <?php else: ?>
-            <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=reopen" class="btn btn-success">Reopen</a>
+            <a href="<?= htmlspecialchars($baseUrl, ENT_QUOTES, 'UTF-8') ?>/alerts-edit?id=<?= htmlspecialchars((string) $alert['id'], ENT_QUOTES, 'UTF-8') ?>&action=reopen" class="btn btn-success">Wznów</a>
         <?php endif; ?>
     </div>
     <?php endif; ?>
