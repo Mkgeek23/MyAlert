@@ -186,6 +186,11 @@ class ApiWorkerHandler
                             $logger->info('worker', "API report: Alert #{$alertId} (repeat_until_closed) next run: {$nextRunAt}");
                         } elseif ($alertType === 'recurring_series') {
                             $logger->info('worker', "API report: Alert #{$alertId} (recurring_series) awaiting user action");
+                        } elseif ($alertType === 'recurring_renewal') {
+                            $intervalMinutes = (int) $alert['repeat_interval_minutes'];
+                            $nextRunAt = date('Y-m-d H:i:s', strtotime($alert['next_run_at']) + $intervalMinutes * 60);
+                            $alertModel->updateNextRun($alertId, $nextRunAt);
+                            $logger->info('worker', "API report: Alert #{$alertId} (recurring_renewal) next run: {$nextRunAt}");
                         }
                     }
                 } else {

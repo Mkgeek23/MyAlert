@@ -66,6 +66,9 @@ class AlertsCreateHandler
             'repeat_interval_minutes' => '',
             'repeat_interval_unit' => 'minutes',
             'default_next_days' => '',
+            'renewal_mode' => '',
+            'renewal_value' => '',
+            'count_from_close_date' => true,
         ], $overrides));
     }
 
@@ -92,6 +95,9 @@ class AlertsCreateHandler
         $repeatIntervalMinutes = $_POST['repeat_interval_minutes'] ?? '';
         $repeatIntervalUnit = $_POST['repeat_interval_unit'] ?? 'minutes';
         $defaultNextDays = $_POST['default_next_days'] ?? '';
+        $renewalMode = $_POST['renewal_mode'] ?? '';
+        $renewalValue = $_POST['renewal_value'] ?? '';
+        $countFromCloseDate = !isset($_POST['count_from_close_date']) || $_POST['count_from_close_date'] === '1';
 
         $errors = [];
 
@@ -102,7 +108,7 @@ class AlertsCreateHandler
         }
 
         // Validate alert type
-        $validTypes = ['one_time', 'repeat_until_closed', 'recurring_series'];
+        $validTypes = ['one_time', 'repeat_until_closed', 'recurring_series', 'recurring_renewal'];
         if (!in_array($alertType, $validTypes, true)) {
             $errors[] = 'Please select a valid alert type.';
         }
@@ -159,6 +165,34 @@ class AlertsCreateHandler
             }
         }
 
+        if ($alertType === 'recurring_renewal') {
+            // Validate renewal mode and value
+            if ($renewalMode === '') {
+                $errors[] = 'Please select a renewal mode.';
+            } else {
+                $renewalResult = $validator->validateRenewalValue($renewalMode, $renewalValue);
+                if (!$renewalResult['valid']) {
+                    $errors = array_merge($errors, $renewalResult['errors']);
+                }
+            }
+
+            // Validate repeat interval (same as repeat_until_closed)
+            if ($repeatIntervalMinutes === '') {
+                $errors[] = 'Repeat interval is required for recurring renewal alerts.';
+            } else {
+                $converted = IntervalConverter::toMinutes($repeatIntervalMinutes, $repeatIntervalUnit);
+                if (!$converted['valid']) {
+                    $errors = array_merge($errors, $converted['errors']);
+                } else {
+                    $convertedMinutes = $converted['minutes'];
+                    $intervalResult = $validator->validateRepeatInterval($convertedMinutes);
+                    if (!$intervalResult['valid']) {
+                        $errors = array_merge($errors, $intervalResult['errors']);
+                    }
+                }
+            }
+        }
+
         // If there are validation errors, re-render form
         if (!empty($errors)) {
             $this->render([
@@ -173,6 +207,9 @@ class AlertsCreateHandler
                 'repeat_interval_minutes' => $repeatIntervalMinutes,
                 'repeat_interval_unit' => $repeatIntervalUnit,
                 'default_next_days' => $defaultNextDays,
+                'renewal_mode' => $renewalMode,
+                'renewal_value' => $renewalValue,
+                'count_from_close_date' => $countFromCloseDate,
             ]);
             return;
         }
@@ -185,8 +222,11 @@ class AlertsCreateHandler
             'description' => $description !== '' ? $description : null,
             'alert_type' => $alertType,
             'next_run_at' => date('Y-m-d H:i:s', strtotime($scheduledAt)),
-            'repeat_interval_minutes' => $alertType === 'repeat_until_closed' ? $convertedMinutes : null,
+            'repeat_interval_minutes' => $alertType === 'repeat_until_closed' || $alertType === 'recurring_renewal' ? $convertedMinutes : null,
             'default_next_days' => $alertType === 'recurring_series' ? (int) $defaultNextDays : null,
+            'renewal_mode' => $alertType === 'recurring_renewal' ? $renewalMode : null,
+            'renewal_value' => $alertType === 'recurring_renewal' ? (int) $renewalValue : null,
+            'count_from_close_date' => $alertType === 'recurring_renewal' ? $countFromCloseDate : true,
         ];
 
         $alertModel->create($alertData);
@@ -217,6 +257,9 @@ class AlertsCreateHandler
         $repeat_interval_minutes = $data['repeat_interval_minutes'];
         $repeat_interval_unit = $data['repeat_interval_unit'] ?? 'minutes';
         $default_next_days = $data['default_next_days'];
+        $renewal_mode = $data['renewal_mode'] ?? '';
+        $renewal_value = $data['renewal_value'] ?? '';
+        $count_from_close_date = $data['count_from_close_date'] ?? true;
 
         // Capture page content
         ob_start();

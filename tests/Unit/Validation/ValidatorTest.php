@@ -376,4 +376,114 @@ class ValidatorTest extends TestCase
     {
         $this->assertSame('', Validator::sanitizeString('   '));
     }
+
+    // --- Renewal Value Validation ---
+
+    public function testRenewalValueDayOfMonthValidPasses(): void
+    {
+        $result = $this->validator->validateRenewalValue('day_of_month', 15);
+        $this->assertTrue($result['valid']);
+        $this->assertEmpty($result['errors']);
+    }
+
+    public function testRenewalValueDayOfMonthMinimumPasses(): void
+    {
+        $result = $this->validator->validateRenewalValue('day_of_month', 1);
+        $this->assertTrue($result['valid']);
+    }
+
+    public function testRenewalValueDayOfMonthMaximumPasses(): void
+    {
+        $result = $this->validator->validateRenewalValue('day_of_month', 28);
+        $this->assertTrue($result['valid']);
+    }
+
+    public function testRenewalValueDayOfMonthBelowMinimumFails(): void
+    {
+        $result = $this->validator->validateRenewalValue('day_of_month', 0);
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Day of month must be between 1 and 28.', $result['errors']);
+    }
+
+    public function testRenewalValueDayOfMonthAboveMaximumFails(): void
+    {
+        $result = $this->validator->validateRenewalValue('day_of_month', 29);
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Day of month must be between 1 and 28.', $result['errors']);
+    }
+
+    public function testRenewalValueNumberOfDaysValidPasses(): void
+    {
+        $result = $this->validator->validateRenewalValue('number_of_days', 30);
+        $this->assertTrue($result['valid']);
+        $this->assertEmpty($result['errors']);
+    }
+
+    public function testRenewalValueNumberOfDaysMinimumPasses(): void
+    {
+        $result = $this->validator->validateRenewalValue('number_of_days', 1);
+        $this->assertTrue($result['valid']);
+    }
+
+    public function testRenewalValueNumberOfDaysMaximumPasses(): void
+    {
+        $result = $this->validator->validateRenewalValue('number_of_days', 365);
+        $this->assertTrue($result['valid']);
+    }
+
+    public function testRenewalValueNumberOfDaysBelowMinimumFails(): void
+    {
+        $result = $this->validator->validateRenewalValue('number_of_days', 0);
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Number of days must be between 1 and 365.', $result['errors']);
+    }
+
+    public function testRenewalValueNumberOfDaysAboveMaximumFails(): void
+    {
+        $result = $this->validator->validateRenewalValue('number_of_days', 366);
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Number of days must be between 1 and 365.', $result['errors']);
+    }
+
+    public function testRenewalValueInvalidModeFails(): void
+    {
+        $result = $this->validator->validateRenewalValue('invalid_mode', 10);
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Please select a renewal mode.', $result['errors']);
+    }
+
+    public function testRenewalValueEmptyModeFails(): void
+    {
+        $result = $this->validator->validateRenewalValue('', 10);
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Please select a renewal mode.', $result['errors']);
+    }
+
+    public function testRenewalValueNonIntegerFails(): void
+    {
+        $result = $this->validator->validateRenewalValue('day_of_month', 'abc');
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Renewal value must be a whole number.', $result['errors']);
+    }
+
+    public function testRenewalValueFloatFails(): void
+    {
+        $result = $this->validator->validateRenewalValue('day_of_month', 5.5);
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Renewal value must be a whole number.', $result['errors']);
+    }
+
+    public function testRenewalValueStringIntegerPasses(): void
+    {
+        $result = $this->validator->validateRenewalValue('day_of_month', '15');
+        $this->assertTrue($result['valid']);
+        $this->assertEmpty($result['errors']);
+    }
+
+    public function testRenewalValueNegativeNumberFails(): void
+    {
+        $result = $this->validator->validateRenewalValue('day_of_month', -1);
+        $this->assertFalse($result['valid']);
+        $this->assertContains('Day of month must be between 1 and 28.', $result['errors']);
+    }
 }

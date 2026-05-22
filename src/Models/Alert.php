@@ -25,14 +25,15 @@ class Alert
      * Create a new alert.
      *
      * @param array $data Alert data with keys: user_id, webhook_id, title, description,
-     *                     alert_type, next_run_at, repeat_interval_minutes, default_next_days
+     *                     alert_type, next_run_at, repeat_interval_minutes, default_next_days,
+     *                     renewal_mode, renewal_value, count_from_close_date
      * @return int The newly created alert ID
      */
     public function create(array $data): int
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO alerts (user_id, webhook_id, title, description, alert_type, status, next_run_at, repeat_interval_minutes, default_next_days)
-             VALUES (:user_id, :webhook_id, :title, :description, :alert_type, :status, :next_run_at, :repeat_interval_minutes, :default_next_days)'
+            'INSERT INTO alerts (user_id, webhook_id, title, description, alert_type, status, next_run_at, repeat_interval_minutes, default_next_days, renewal_mode, renewal_value, count_from_close_date)
+             VALUES (:user_id, :webhook_id, :title, :description, :alert_type, :status, :next_run_at, :repeat_interval_minutes, :default_next_days, :renewal_mode, :renewal_value, :count_from_close_date)'
         );
         $stmt->execute([
             ':user_id' => $data['user_id'],
@@ -44,6 +45,9 @@ class Alert
             ':next_run_at' => $data['next_run_at'],
             ':repeat_interval_minutes' => $data['repeat_interval_minutes'] ?? null,
             ':default_next_days' => $data['default_next_days'] ?? null,
+            ':renewal_mode' => $data['renewal_mode'] ?? null,
+            ':renewal_value' => $data['renewal_value'] ?? null,
+            ':count_from_close_date' => $data['count_from_close_date'] ?? true,
         ]);
 
         return (int) $this->pdo->lastInsertId();
@@ -151,6 +155,7 @@ class Alert
      * @param array $data Associative array of field => value pairs to update.
      *                    Supported fields: title, description, webhook_id, alert_type,
      *                    next_run_at, repeat_interval_minutes, default_next_days,
+     *                    renewal_mode, renewal_value, count_from_close_date,
      *                    status, series_ended
      */
     public function update(int $id, array $data): void
@@ -158,6 +163,7 @@ class Alert
         $allowedFields = [
             'title', 'description', 'webhook_id', 'alert_type',
             'next_run_at', 'repeat_interval_minutes', 'default_next_days',
+            'renewal_mode', 'renewal_value', 'count_from_close_date',
             'status', 'series_ended',
         ];
 

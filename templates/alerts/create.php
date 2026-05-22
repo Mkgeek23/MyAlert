@@ -3,7 +3,7 @@
  * Alerts Create Template
  *
  * Form for creating a new alert with fields for title, description, webhook select,
- * alert type, datetime, repeat interval, and default_next_days.
+ * alert type, datetime, repeat interval, default_next_days, and renewal configuration.
  *
  * Variables expected:
  *   $csrfToken              - string, CSRF token
@@ -17,6 +17,9 @@
  *   $repeat_interval_minutes - string, previously submitted repeat interval
  *   $repeat_interval_unit   - string, previously selected unit ("minutes" or "hours")
  *   $default_next_days      - string, previously submitted default next days
+ *   $renewal_mode           - string, previously selected renewal mode ("day_of_month" or "number_of_days")
+ *   $renewal_value          - string, previously submitted renewal value
+ *   $count_from_close_date  - bool, whether to count from close date (default true)
  *   $config                 - array, application configuration (for base_url)
  */
 
@@ -73,11 +76,13 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
                     <option value="one_time"<?= $alert_type === 'one_time' ? ' selected' : '' ?>>One-Time</option>
                     <option value="repeat_until_closed"<?= $alert_type === 'repeat_until_closed' ? ' selected' : '' ?>>Repeat Until Closed</option>
                     <option value="recurring_series"<?= $alert_type === 'recurring_series' ? ' selected' : '' ?>>Recurring Series</option>
+                    <option value="recurring_renewal"<?= $alert_type === 'recurring_renewal' ? ' selected' : '' ?>>Recurring Renewal</option>
                 </select>
                 <div class="form-text">
                     <strong>One-Time:</strong> Fires once at the scheduled time.<br>
                     <strong>Repeat Until Closed:</strong> Repeats at a fixed interval until you close it.<br>
-                    <strong>Recurring Series:</strong> After closing, you can schedule the next occurrence.
+                    <strong>Recurring Series:</strong> After closing, you can schedule the next occurrence.<br>
+                    <strong>Recurring Renewal:</strong> After closing, calculates the next date automatically based on renewal mode.
                 </div>
             </div>
 
@@ -98,13 +103,46 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
                         <option value="hours"<?= ($repeat_interval_unit ?? 'minutes') === 'hours' ? ' selected' : '' ?>>hours</option>
                     </select>
                 </div>
-                <div class="form-text">How often to repeat (5 min – 8,760 hrs). Only for Repeat Until Closed alerts.</div>
+                <div class="form-text">How often to repeat (5 min – 8,760 hrs). For Repeat Until Closed and Recurring Renewal alerts.</div>
             </div>
 
             <div class="mb-3" id="default_next_days_group">
                 <label for="default_next_days" class="form-label">Default Next Days <span class="text-danger">*</span></label>
                 <input type="number" class="form-control" id="default_next_days" name="default_next_days" value="<?= htmlspecialchars((string) $default_next_days, ENT_QUOTES, 'UTF-8') ?>" min="1" max="365" placeholder="e.g. 7 for weekly">
                 <div class="form-text">Pre-fills the next date when closing an occurrence (1-365 days). Only for Recurring Series alerts.</div>
+            </div>
+
+            <div id="renewal_fields_group">
+                <div class="mb-3">
+                    <label class="form-label">Tryb odnowienia <span class="text-danger">*</span></label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="renewal_mode" id="renewal_mode_day" value="day_of_month"<?= ($renewal_mode ?? '') === 'day_of_month' ? ' checked' : '' ?>>
+                            <label class="form-check-label" for="renewal_mode_day">Dzień miesiąca</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="renewal_mode" id="renewal_mode_days" value="number_of_days"<?= ($renewal_mode ?? '') === 'number_of_days' ? ' checked' : '' ?>>
+                            <label class="form-check-label" for="renewal_mode_days">Liczba dni</label>
+                        </div>
+                    </div>
+                    <div class="form-text">Wybierz sposób obliczania następnej daty alertu po zamknięciu.</div>
+                </div>
+
+                <div class="mb-3" id="renewal_value_group">
+                    <label for="renewal_value" class="form-label">Wartość <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="renewal_value" name="renewal_value"
+                           value="<?= htmlspecialchars((string) ($renewal_value ?? ''), ENT_QUOTES, 'UTF-8') ?>"
+                           min="1" max="365" step="1" placeholder="Wprowadź wartość">
+                    <div class="form-text" id="renewal_value_help">Dzień miesiąca (1–28) lub liczba dni (1–365).</div>
+                </div>
+
+                <div class="mb-3" id="count_from_close_date_group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="count_from_close_date" id="count_from_close_date" value="1"<?= ($count_from_close_date ?? true) ? ' checked' : '' ?>>
+                        <label class="form-check-label" for="count_from_close_date">Licz od daty zakończenia alertu</label>
+                    </div>
+                    <div class="form-text">Gdy zaznaczone, następna data będzie liczona od momentu zamknięcia alertu. Gdy odznaczone — od oryginalnej daty zaplanowania (next_run_at).</div>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary">Create Alert</button>
@@ -118,15 +156,59 @@ $baseUrl = rtrim($config['base_path'] ?? '', '/');
         var alertTypeSelect = document.getElementById('alert_type');
         var repeatGroup = document.getElementById('repeat_interval_group');
         var nextDaysGroup = document.getElementById('default_next_days_group');
+        var renewalFieldsGroup = document.getElementById('renewal_fields_group');
 
         function toggleFields() {
             var type = alertTypeSelect.value;
-            repeatGroup.style.display = (type === 'repeat_until_closed') ? 'block' : 'none';
+            repeatGroup.style.display = (type === 'repeat_until_closed' || type === 'recurring_renewal') ? 'block' : 'none';
             nextDaysGroup.style.display = (type === 'recurring_series') ? 'block' : 'none';
+            renewalFieldsGroup.style.display = (type === 'recurring_renewal') ? 'block' : 'none';
         }
 
         alertTypeSelect.addEventListener('change', toggleFields);
         toggleFields(); // Run on page load
+    })();
+
+    // Show/hide renewal sub-fields based on renewal mode selection
+    (function() {
+        var renewalModeDay = document.getElementById('renewal_mode_day');
+        var renewalModeDays = document.getElementById('renewal_mode_days');
+        var renewalValueInput = document.getElementById('renewal_value');
+        var renewalValueHelp = document.getElementById('renewal_value_help');
+        var countFromCloseDateGroup = document.getElementById('count_from_close_date_group');
+
+        function toggleRenewalFields() {
+            var mode = '';
+            if (renewalModeDay.checked) {
+                mode = 'day_of_month';
+            } else if (renewalModeDays.checked) {
+                mode = 'number_of_days';
+            }
+
+            if (mode === 'day_of_month') {
+                renewalValueInput.setAttribute('min', '1');
+                renewalValueInput.setAttribute('max', '28');
+                renewalValueInput.setAttribute('placeholder', 'Dzień miesiąca (1–28)');
+                renewalValueHelp.textContent = 'Dzień miesiąca, na który zostanie zaplanowany następny alert (1–28).';
+                countFromCloseDateGroup.style.display = 'none';
+            } else if (mode === 'number_of_days') {
+                renewalValueInput.setAttribute('min', '1');
+                renewalValueInput.setAttribute('max', '365');
+                renewalValueInput.setAttribute('placeholder', 'Liczba dni (1–365)');
+                renewalValueHelp.textContent = 'Liczba dni do dodania do daty odniesienia (1–365).';
+                countFromCloseDateGroup.style.display = 'block';
+            } else {
+                renewalValueInput.setAttribute('min', '1');
+                renewalValueInput.setAttribute('max', '365');
+                renewalValueInput.setAttribute('placeholder', 'Wprowadź wartość');
+                renewalValueHelp.textContent = 'Dzień miesiąca (1–28) lub liczba dni (1–365).';
+                countFromCloseDateGroup.style.display = 'block';
+            }
+        }
+
+        renewalModeDay.addEventListener('change', toggleRenewalFields);
+        renewalModeDays.addEventListener('change', toggleRenewalFields);
+        toggleRenewalFields(); // Run on page load
     })();
 
     // Toggle interval input constraints based on selected unit

@@ -171,6 +171,47 @@ class Validator
     }
 
     /**
+     * Validate a renewal value based on the selected mode.
+     * Rules:
+     * - Mode must be 'day_of_month' or 'number_of_days'
+     * - Value must be a valid integer
+     * - day_of_month: 1–28 inclusive
+     * - number_of_days: 1–365 inclusive
+     *
+     * @param string $mode The renewal mode
+     * @param mixed  $value The renewal value to validate
+     * @return array{valid: bool, errors: string[]}
+     */
+    public function validateRenewalValue(string $mode, $value): array
+    {
+        $errors = [];
+
+        if ($mode !== 'day_of_month' && $mode !== 'number_of_days') {
+            $errors[] = 'Please select a renewal mode.';
+            return ['valid' => false, 'errors' => $errors];
+        }
+
+        if (!is_numeric($value) || (int) $value != $value) {
+            $errors[] = 'Renewal value must be a whole number.';
+            return ['valid' => false, 'errors' => $errors];
+        }
+
+        $intValue = (int) $value;
+
+        if ($mode === 'day_of_month') {
+            if ($intValue < 1 || $intValue > 28) {
+                $errors[] = 'Day of month must be between 1 and 28.';
+            }
+        } elseif ($mode === 'number_of_days') {
+            if ($intValue < 1 || $intValue > 365) {
+                $errors[] = 'Number of days must be between 1 and 365.';
+            }
+        }
+
+        return ['valid' => empty($errors), 'errors' => $errors];
+    }
+
+    /**
      * Sanitize a string: trim whitespace and optionally enforce max length.
      */
     public static function sanitizeString(string $input, int $maxLength = 0): string

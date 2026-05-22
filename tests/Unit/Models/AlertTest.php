@@ -31,6 +31,9 @@ class AlertTest extends TestCase
                 next_run_at DATETIME NOT NULL,
                 repeat_interval_minutes INTEGER NULL,
                 default_next_days INTEGER NULL,
+                renewal_mode VARCHAR(20) NULL DEFAULT NULL,
+                renewal_value INTEGER NULL DEFAULT NULL,
+                count_from_close_date INTEGER NOT NULL DEFAULT 1,
                 series_ended INTEGER NOT NULL DEFAULT 0,
                 created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP

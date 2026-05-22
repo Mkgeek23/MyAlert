@@ -7,6 +7,7 @@ namespace MyAlert\Handlers;
 use MyAlert\Middleware\CsrfMiddleware;
 use MyAlert\Models\Alert;
 use MyAlert\Models\AlertToken;
+use MyAlert\Services\RenewalDateCalculator;
 use MyAlert\Validation\Validator;
 use PDO;
 
@@ -118,6 +119,19 @@ class CloseAlertHandler
             return;
         }
 
+        // recurring_renewal: show mode-specific renewal form
+        if ($alert['alert_type'] === 'recurring_renewal') {
+            $renewalMode = $alert['renewal_mode'] ?? 'number_of_days';
+            $renewalValue = (int) ($alert['renewal_value'] ?? 1);
+
+            if ($renewalMode === 'day_of_month') {
+                $this->renderRenewalDayForm($token, $alert, $renewalValue);
+            } else {
+                $this->renderRenewalDaysForm($token, $alert, $renewalValue);
+            }
+            return;
+        }
+
         // recurring_series: show next date form
         $defaultNextDays = (int) ($alert['default_next_days'] ?? 7);
         $prefilledDate = date('Y-m-d', strtotime("+{$defaultNextDays} days"));
@@ -179,6 +193,21 @@ class CloseAlertHandler
         }
 
         // Process action
+        if ($alert['alert_type'] === 'recurring_renewal' && $action === 'renew') {
+            $this->handleRenewAction($token, $alert, $alertModel, $alertTokenModel, $tokenRecord, $validator);
+            return;
+        }
+
+        if ($alert['alert_type'] === 'recurring_renewal' && $action === 'end_series') {
+            $alertModel->endSeries((int) $alert['id']);
+            $alertTokenModel->markUsed((int) $tokenRecord['id']);
+            $this->renderSuccess(
+                'Seria alertu "' . htmlspecialchars($alert['title'], ENT_QUOTES, 'UTF-8') . '" została trwale zakończona.',
+                'Seria zakończona'
+            );
+            return;
+        }
+
         if ($action === 'end_series') {
             $alertModel->endSeries((int) $alert['id']);
             $alertTokenModel->markUsed((int) $tokenRecord['id']);
@@ -286,6 +315,117 @@ class CloseAlertHandler
 
         ob_start();
         require __DIR__ . '/../../templates/close-alert/error.php';
+        $content = ob_get_clean();
+
+        require __DIR__ . '/../../templates/layout.php';
+    }
+
+    /**
+     * Handle the 'renew' action for recurring_renewal alerts.
+     * Validates the submitted renewal value, computes the next date, and updates the alert.
+     */
+    private function handleRenewAction(
+        string $token,
+        array $alert,
+        Alert $alertModel,
+        AlertToken $alertTokenModel,
+        array $tokenRecord,
+        Validator $validator
+    ): void {
+        $renewalMode = $alert['renewal_mode'] ?? 'number_of_days';
+        $submittedValue = $_POST['renewal_value'] ?? '';
+
+        // Validate the submitted renewal value
+        $validationResult = $validator->validateRenewalValue($renewalMode, $submittedValue);
+
+        if (!$validationResult['valid']) {
+            $errorMessage = $validationResult['errors'][0] ?? 'Invalid value.';
+
+            if ($renewalMode === 'day_of_month') {
+                $this->renderRenewalDayForm($token, $alert, (int) $submittedValue, $errorMessage);
+            } else {
+                $this->renderRenewalDaysForm($token, $alert, (int) $submittedValue, $errorMessage);
+            }
+            return;
+        }
+
+        $renewalValue = (int) $submittedValue;
+
+        // Determine reference date based on count_from_close_date flag
+        $countFromCloseDate = !empty($alert['count_from_close_date']);
+
+        if ($countFromCloseDate) {
+            $referenceDate = new \DateTime();
+        } else {
+            $referenceDate = new \DateTime($alert['next_run_at']);
+        }
+
+        // Calculate the next date using RenewalDateCalculator
+        $calculator = new RenewalDateCalculator();
+        $now = new \DateTime();
+
+        if ($renewalMode === 'day_of_month') {
+            $nextDate = $calculator->calculateDayOfMonth($renewalValue, $referenceDate, $now);
+        } else {
+            $nextDate = $calculator->calculateNumberOfDays($renewalValue, $referenceDate, $now);
+        }
+
+        // Update the alert: set next_run_at and status to active
+        $nextRunAtFormatted = $nextDate->format('Y-m-d H:i:s');
+        $alertModel->update((int) $alert['id'], [
+            'next_run_at' => $nextRunAtFormatted,
+            'status' => 'active',
+        ]);
+
+        // Mark token as used
+        $alertTokenModel->markUsed((int) $tokenRecord['id']);
+
+        // Render success page with the computed next date
+        $displayDate = $nextDate->format('d.m.Y');
+        $this->renderSuccess(
+            'Następne wystąpienie alertu "' . htmlspecialchars($alert['title'], ENT_QUOTES, 'UTF-8')
+            . '" zostało zaplanowane na ' . $displayDate . '.',
+            'Nowa data ustawiona'
+        );
+    }
+
+    /**
+     * Render the day-of-month renewal form for recurring_renewal alerts.
+     */
+    private function renderRenewalDayForm(string $token, array $alert, int $dayValue, string $error = ''): void
+    {
+        $pageTitle = 'Odnowienie alertu';
+        $config = $this->config;
+        $csrf = new CsrfMiddleware();
+        $csrfToken = $csrf->getToken();
+        $alertTitle = $alert['title'];
+        $formToken = $token;
+        $formDay = $dayValue;
+        $formError = $error;
+
+        ob_start();
+        require __DIR__ . '/../../templates/close-alert/renewal-day.php';
+        $content = ob_get_clean();
+
+        require __DIR__ . '/../../templates/layout.php';
+    }
+
+    /**
+     * Render the number-of-days renewal form for recurring_renewal alerts.
+     */
+    private function renderRenewalDaysForm(string $token, array $alert, int $daysValue, string $error = ''): void
+    {
+        $pageTitle = 'Odnów alert';
+        $config = $this->config;
+        $csrf = new CsrfMiddleware();
+        $csrfToken = $csrf->getToken();
+        $alertTitle = $alert['title'];
+        $formToken = $token;
+        $formValue = $daysValue;
+        $formError = $error;
+
+        ob_start();
+        require __DIR__ . '/../../templates/close-alert/renewal-days.php';
         $content = ob_get_clean();
 
         require __DIR__ . '/../../templates/layout.php';
